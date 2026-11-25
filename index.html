@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlockShare - ចែករំលែក Mod Minecraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Noto+Sans+Khmer:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#12151a;--panel:#1b1f26;--stone:#2a2f38;--line:#3a404b;--text:#e8eaed;--mute:#98a0ab;--grass:#6cc24a;--grass-d:#3f7d2a;--dirt:#8b5e3c;--gold:#f2c14e;--red:#ef5b5b}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text);font:16px/1.6 "Noto Sans Khmer",system-ui,sans-serif;min-height:100vh}
+.px{font-family:"Silkscreen","Noto Sans Khmer",monospace}
+header{border-bottom:4px solid var(--grass-d);background:linear-gradient(var(--stone),var(--panel));position:sticky;top:0;z-index:5}
+.bar{max-width:1100px;margin:auto;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700}
+.cube{width:28px;height:28px;background:linear-gradient(var(--grass) 0 35%,var(--dirt) 35%);border:3px solid #0006;box-shadow:inset -3px -3px #0004,inset 3px 3px #fff2}
+.grow{flex:1}
+button,.btn{font:600 15px "Noto Sans Khmer",sans-serif;cursor:pointer;color:#fff;background:var(--grass-d);border:0;padding:10px 18px;box-shadow:inset -3px -3px #0005,inset 3px 3px #fff3,0 0 0 2px #0008;transition:transform .08s}
+button:hover{background:#4a9132}button:active{transform:translateY(2px)}
+button.ghost{background:var(--stone)}button.ghost:hover{background:#363c47}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+main{max-width:1100px;margin:auto;padding:28px 20px 60px}
+.hero{padding:26px 0 18px}
+.hero h1{font-size:clamp(26px,5vw,44px);line-height:1.15;letter-spacing:1px}
+.hero p{color:var(--mute);max-width:56ch;margin-top:10px}
+.notice{background:#3b2f12;border:2px solid var(--gold);color:#ffe3a1;padding:12px 16px;margin:14px 0;font-size:14px}
+.notice b{color:var(--gold)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+input,select,textarea{background:var(--panel);color:var(--text);border:2px solid var(--line);padding:10px 12px;font:inherit;width:100%}
+.tools input{flex:2;min-width:200px;width:auto}.tools select{flex:1;min-width:130px;width:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px}
+.card{background:var(--panel);border:2px solid var(--line);display:flex;flex-direction:column;position:relative;transition:border-color .15s}
+.card:hover{border-color:var(--grass)}
+.thumb{aspect-ratio:16/9;background:var(--stone) center/cover;display:grid;place-items:center;color:var(--mute);border-bottom:2px solid var(--line);image-rendering:pixelated}
+.body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.body h3{font-size:18px;line-height:1.3}
+.body p{color:var(--mute);font-size:14px;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:12px;padding:2px 8px;background:var(--stone);border:1px solid var(--line)}
+.tag.l{color:var(--grass);border-color:var(--grass-d)}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
+.new{position:absolute;top:8px;left:8px;background:var(--gold);color:#222;font-size:11px;padding:2px 8px;font-weight:700;animation:pop .6s ease-out}
+@keyframes pop{from{transform:scale(1.6);opacity:0}}
+.empty{grid-column:1/-1;text-align:center;padding:60px 20px;border:2px dashed var(--line);color:var(--mute)}
+dialog{background:var(--panel);color:var(--text);border:4px solid var(--grass-d);padding:0;width:min(520px,94vw);max-height:92vh;overflow:auto}
+dialog::backdrop{background:#000b}
+form{padding:22px;display:grid;gap:14px}
+label{font-size:14px;color:var(--mute);display:grid;gap:6px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.drop{border:2px dashed var(--line);padding:16px;text-align:center;cursor:pointer;color:var(--mute);font-size:14px}
+.drop:hover,.drop.on{border-color:var(--grass);color:var(--text)}
+.drop input{display:none}
+.prog{height:12px;background:var(--stone);display:none}.prog i{display:block;height:100%;width:0;background:var(--grass);transition:width .2s}
+.err{color:var(--red);font-size:14px;min-height:1em}
+.acts{display:flex;gap:10px;justify-content:flex-end}
+@media(max-width:480px){.row{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="logo px"><span class="cube"></span>BlockShare</div>
+  <div class="grow"></div>
+  <button id="openUp">+ ចែករំលែក Mod</button>
+</div></header>
+
+<main>
+  <section class="hero">
+    <h1 class="px">រកឃើញ Mod ថ្មីៗ<br>សម្រាប់ Minecraft</h1>
+    <p>អ្នកណាក៏អាច Upload Mod (.jar / .zip) ហើយគ្រប់គ្នាឃើញ និង Download បានភ្លាមៗ។</p>
+  </section>
+  <div id="demoNotice" class="notice" hidden><b>របៀបសាកល្បង៖</b> មិនទាន់ភ្ជាប់ Supabase ទេ ទិន្នន័យនឹងបាត់ពេល Refresh។ បំពេញ <code>SUPABASE_URL</code> និង <code>SUPABASE_KEY</code> ក្នុងកូដ ដើម្បីចែករំលែកជាសាធារណៈ។</div>
+
+  <div class="tools">
+    <input id="q" type="search" placeholder="ស្វែងរកតាមឈ្មោះ ឬការពិពណ៌នា..." aria-label="ស្វែងរក">
+    <select id="loader" aria-label="Loader"><option value="">Loader ទាំងអស់</option><option>Forge</option><option>NeoForge</option><option>Fabric</option><option>Quilt</option><option>Bukkit/Spigot</option><option>Resource Pack</option></select>
+    <select id="sort" aria-label="តម្រៀប"><option value="new">ថ្មីបំផុត</option><option value="dl">Download ច្រើនបំផុត</option></select>
+  </div>
+  <div id="list" class="grid"></div>
+</main>
+
+<dialog id="dlg">
+  <form id="f">
+    <h2 class="px">ចែករំលែក Mod</h2>
+    <label>ឈ្មោះ Mod<input name="title" required maxlength="80"></label>
+    <label>ការពិពណ៌នា<textarea name="description" rows="3" maxlength="600"></textarea></label>
+    <div class="row">
+      <label>កំណែ Minecraft<input name="version" placeholder="1.20.1" required maxlength="20"></label>
+      <label>Loader<select name="loader"><option>Forge</option><option>NeoForge</option><option>Fabric</option><option>Quilt</option><option>Bukkit/Spigot</option><option>Resource Pack</option></select></label>
+    </div>
+    <label class="drop" id="dropFile">📦 ជ្រើសឯកសារ .jar / .zip (ឧ. ≤ 50MB)<input type="file" id="file" accept=".jar,.zip" required><span id="fileName"></span></label>
+    <label class="drop" id="dropImg">🖼️ ជ្រើសរូបភាព (មិនបង្ខំ)<input type="file" id="img" accept="image/*"><span id="imgName"></span></label>
+    <div class="prog" id="prog"><i></i></div>
+    <div class="err" id="err" role="alert"></div>
+    <div class="acts"><button type="button" class="ghost" id="cancel">បោះបង់</button><button id="submit">Upload</button></div>
+  </form>
+</dialog>
+
+<script>
+/* ===== 1) ដាក់ព័ត៌មាន Supabase របស់អ្នកនៅទីនេះ ===== */
+const SUPABASE_URL = "";   // ឧ. https://xxxx.supabase.co
+const SUPABASE_KEY = "";   // anon public key
+const BUCKET = "mods", MAX_MB = 50;
+/* ================================================ */
+
+const $ = s => document.querySelector(s);
+const live = SUPABASE_URL && SUPABASE_KEY && window.supabase;
+const db = live ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+let mods = [], seen = new Set(), first = true;
+
+if (!live) $("#demoNotice").hidden = false;
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const when = d => { const m = Math.floor((Date.now() - new Date(d)) / 60000); return m < 1 ? "ទើបតែ" : m < 60 ? m + " នាទីមុន" : m < 1440 ? Math.floor(m/60) + " ម៉ោងមុន" : Math.floor(m/1440) + " ថ្ងៃមុន"; };
+
+function render() {
+  const q = $("#q").value.trim().toLowerCase(), l = $("#loader").value, s = $("#sort").value;
+  let r = mods.filter(m => (!l || m.loader === l) && (!q || (m.title + " " + (m.description||"")).toLowerCase().includes(q)));
+  r.sort((a, b) => s === "dl" ? b.downloads - a.downloads : new Date(b.created_at) - new Date(a.created_at));
+  $("#list").innerHTML = r.length ? r.map(m => `
+    <article class="card">
+      ${!first && !seen.has(m.id) ? '<span class="new px">NEW</span>' : ""}
+      <div class="thumb" ${m.image_url ? `style="background-image:url('${esc(m.image_url)}')"` : ""}>${m.image_url ? "" : "⛏️"}</div>
+      <div class="body">
+        <h3>${esc(m.title)}</h3>
+        <div class="tags"><span class="tag l">${esc(m.loader)}</span><span class="tag">MC ${esc(m.version)}</span></div>
+        <p>${esc(m.description)}</p>
+        <div class="foot"><span>${when(m.created_at)} · ⬇ ${m.downloads}</span>
+        <button data-dl="${m.id}">Download</button></div>
+      </div>
+    </article>`).join("")
+    : `<div class="empty">មិនទាន់មាន Mod ទេ។ ចុច "ចែករំលែក Mod" ដើម្បី Upload ទីមួយ!</div>`;
+  mods.forEach(m => seen.add(m.id)); first = false;
+}
+
+async function load() {
+  if (!live) return render();
+  const { data, error } = await db.from("mods").select("*").order("created_at", { ascending: false });
+  if (error) { $("#list").innerHTML = `<div class="empty">ភ្ជាប់ Database មិនបាន៖ ${esc(error.message)}</div>`; return; }
+  mods = data; render();
+}
+
+/* Realtime: នរណា Upload ក៏ឃើញភ្លាមៗ */
+if (live) db.channel("mods-feed").on("postgres_changes", { event: "*", schema: "public", table: "mods" }, load).subscribe();
+
+$("#list").addEventListener("click", async e => {
+  const id = e.target.dataset.dl; if (!id) return;
+  const m = mods.find(x => x.id == id);
+  m.downloads++; render();
+  if (live) db.rpc("increment_downloads", { mod_id: m.id });
+  const a = document.createElement("a"); a.href = m.file_url; a.download = m.file_name; document.body.append(a); a.click(); a.remove();
+});
+
+["#q", "#loader", "#sort"].forEach(s => $(s).addEventListener("input", render));
+
+/* Upload dialog */
+const dlg = $("#dlg"), f = $("#f");
+$("#openUp").onclick = () => dlg.showModal();
+$("#cancel").onclick = () => dlg.close();
+$("#file").onchange = e => { $("#fileName").textContent = e.target.files[0]?.name || ""; };
+$("#img").onchange = e => { $("#imgName").textContent = e.target.files[0]?.name || ""; };
+
+const safe = n => n.replace(/[^\w.\-]+/g, "_");
+function upload(path, file, onP) {
+  // Supabase JS មិនមាន progress ទេ ដូច្នេះប្រើ XHR ផ្ទាល់ដើម្បីបង្ហាញ progress
+  return new Promise((ok, no) => {
+    const x = new XMLHttpRequest();
+    x.open("POST", `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`);
+    x.setRequestHeader("Authorization", "Bearer " + SUPABASE_KEY);
+    x.setRequestHeader("apikey", SUPABASE_KEY);
+    x.setRequestHeader("x-upsert", "false");
+    x.upload.onprogress = e => e.lengthComputable && onP(e.loaded);
+    x.onload = () => x.status < 300 ? ok() : no(new Error(JSON.parse(x.responseText || "{}").message || "Upload បរាជ័យ"));
+    x.onerror = () => no(new Error("បណ្តាញមានបញ្ហា"));
+    const fd = new FormData(); fd.append("", file); x.send(fd);
+  });
+}
+
+f.addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = $("#err"), btn = $("#submit"), bar = $("#prog"), fill = bar.firstElementChild;
+  err.textContent = "";
+  const file = $("#file").files[0], img = $("#img").files[0], d = Object.fromEntries(new FormData(f));
+  if (!file || !/\.(jar|zip)$/i.test(file.name)) return err.textContent = "សូមជ្រើសឯកសារ .jar ឬ .zip";
+  if (file.size > MAX_MB * 1048576) return err.textContent = `ឯកសារធំពេក (អតិបរមា ${MAX_MB}MB)`;
+  if (img && !img.type.startsWith("image/")) return err.textContent = "រូបភាពមិនត្រឹមត្រូវ";
+  btn.disabled = true; btn.textContent = "កំពុង Upload..."; bar.style.display = "block";
+  try {
+    let row;
+    if (live) {
+      const stamp = Date.now() + "-" + Math.random().toString(36).slice(2, 7);
+      const fp = `files/${stamp}-${safe(file.name)}`;
+      const total = file.size + (img?.size || 0);
+      await upload(fp, file, n => fill.style.width = (n / total * 100) + "%");
+      let image_url = null;
+      if (img) {
+        const ip = `images/${stamp}-${safe(img.name)}`;
+        await upload(ip, img, n => fill.style.width = ((file.size + n) / total * 100) + "%");
+        image_url = db.storage.from(BUCKET).getPublicUrl(ip).data.publicUrl;
+      }
+      const file_url = db.storage.from(BUCKET).getPublicUrl(fp, { download: file.name }).data.publicUrl;
+      const { data, error } = await db.from("mods").insert({ ...d, file_url, file_name: file.name, image_url }).select().single();
+      if (error) throw error; row = data;
+    } else {
+      row = { id: Date.now(), ...d, file_url: URL.createObjectURL(file), file_name: file.name, image_url: img ? URL.createObjectURL(img) : null, downloads: 0, created_at: new Date().toISOString() };
+    }
+    if (!mods.find(m => m.id === row.id)) mods.unshift(row);
+    render(); f.reset(); $("#fileName").textContent = $("#imgName").textContent = ""; dlg.close();
+  } catch (x) { err.textContent = "កំហុស៖ " + (x.message || x); }
+  btn.disabled = false; btn.textContent = "Upload"; bar.style.display = "none"; fill.style.width = "0";
+});
+
+load();
+</script>
+</body>
+</html>
